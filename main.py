@@ -10,3 +10,4 @@ from dota2info import Dota2info
 
 d = Dota2info(address)
 
+print(d.get_heroes_list())
