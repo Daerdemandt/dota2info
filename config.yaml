@@ -1,0 +1,5 @@
+# Config of this service.
+
+address: dota2.com
+
+serving_port: 8000
