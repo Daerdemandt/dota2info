@@ -14,6 +14,12 @@ def get_html(url):
 
 def naviget(query, subject): 
 	def simple_get(field, subject):
+		try:
+			return subject[field]
+		except KeyError:
+			pass
+		except TypeError:
+			pass
 		if hasattr(subject, field) and getattr(subject, field):
 			return getattr(subject, field)
 		by_id = subject.find(id=field)
@@ -34,14 +40,15 @@ def naviget_all(query, subjects):
 		query = [query]
 
 	def elementary_get_all(term, subject):
-		by_name = subject.get_all(term)
-		by_id = subject.get_all(id=term)
-		by_class = subject.get_all(class_=term)
-		return by_name + by_id + by_class
+		try:
+			by_name = subject.find_all(term)
+			by_id = subject.find_all(id=term)
+			by_class = subject.find_all(class_=term)
+			return by_name + by_id + by_class
+		except AttributeError:
+			return []
 
 	for term in query:
 		term_getter = lambda sub: elementary_get_all(term, sub)
-		subjects = sum(map(term_getter, subjects))
+		subjects = [item for sublist in map(term_getter, subjects) for item in sublist]
 	return subjects
-
-
