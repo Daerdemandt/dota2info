@@ -38,6 +38,18 @@ class Dota2info():
 		hero_page_url = 'http://' + self.address + '/hero/' + hero_id.title()
 		html_content_path = ['body', 'center', 'bodyContainer', 'centerColContainer', 'centerColContent']
 		html_data = sp.naviget(html_content_path, sp.get_html(hero_page_url))
+		def parse_range(x):
+			low, high = (piece.strip() for piece in x.split('-'))
+			return {'string':x, 'min':low, 'max':high}
+
+		def parse_progression(x):
+			base, increment = (piece.strip() for piece in x.split('+'))
+			return {'string':x, 'base':base, 'increment':increment}
+
+		def parse_vision(x):
+			day, night = (piece.strip() for piece in x.split('/'))
+			return {'string':x, 'day':day, 'night':night}
+
 		extract = lambda path: sp.naviget(path, html_data)
 		title = extract(['h1', 'string'])
 		if (title != hero_data['name']):
@@ -69,7 +81,9 @@ class Dota2info():
 			},
 			blocks['overview']
 		)
-		#TODO: '25 + 2.40' => {'string' : '25 + 2.40', 'base' : 25, 'increment' : 2.40}
+		hero_data['attack'] = parse_range(hero_data['attack'])
+		for growing_stat in ['int', 'agi', 'str']:
+			hero_data[growing_stat] = parse_progression(hero_data[growing_stat])
 
 		block_update({'bio':'text'}, blocks['bio'])
 		hero_data['bio'] = hero_data['bio'].strip()
@@ -77,9 +91,12 @@ class Dota2info():
 		stat_pieces = sp.naviget_all(['statsRight', 'div', 'statRowCol2W'], [blocks['stats']])
 		for (piece, name) in zip(stat_pieces, ['vision_range', 'attack_range', 'missile_speed']):
 			hero_data[name] = piece.string
-		#TODO: vision range 1800/800 -> two values
+		hero_data['vision_range'] = parse_vision(hero_data['vision_range'])
 
-		#TODO: 1 / 15 / 25 data
+		hero_data['stats_by_level'] = sp.parse_div_table(sp.naviget('statsLeft', blocks['stats']))
+		hero_data['stats_by_level']['Damage'] = [parse_range(x) for x in hero_data['stats_by_level']['Damage']]
+		hero_data['stats_by_level']['Mana'] = [int(x.replace(',', '')) for x in hero_data['stats_by_level']['Mana']]
+
 
 		#TODO: abilities
 
