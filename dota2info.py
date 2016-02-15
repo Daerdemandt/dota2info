@@ -35,7 +35,7 @@ class Dota2info():
 			'id': hero_id,
 			'name':hero_id.replace('_', ' ').title()
 		}
-		hero_page_url = 'http://' + self.address + '/hero/' + hero_id.title()
+		hero_page_url = 'http://' + self.address + '/hero/' + hero_id.title() + '?l=' + language
 		html_content_path = ['body', 'center', 'bodyContainer', 'centerColContainer', 'centerColContent']
 		html_data = sp.naviget(html_content_path, sp.get_html(hero_page_url))
 		def parse_range(x):
