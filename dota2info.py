@@ -97,10 +97,33 @@ class Dota2info():
 		hero_data['stats_by_level']['Damage'] = [parse_range(x) for x in hero_data['stats_by_level']['Damage']]
 		hero_data['stats_by_level']['Mana'] = [int(x.replace(',', '')) for x in hero_data['stats_by_level']['Mana']]
 
-
-		#TODO: abilities
+		self.ensure_abilities()
+		hero_data['abilities'] = self.hero_abilities[hero_id]
 
 		return hero_data
+	
+	def retreive_abilities(self):
+		#TODO: languages
+		#TODO: fancy parsing of those
+		whole_bunch  = sp.get_json('http://www.dota2.com/jsfeed/heropediadata?feeds=abilitydata&l=russian')['abilitydata']
+		heroes = set(sp.get_json('http://www.dota2.com/jsfeed/heropickerdata?l=russian').keys())
+		hero_abilities = {hero : {} for hero in heroes}
+		for ability_name_full in whole_bunch:
+			ability_name_words = ability_name_full.split('_')
+			for word_count in range(1, len(ability_name_words)):
+				hero_id = '_'.join(ability_name_words[:word_count])
+				if hero_id in heroes:
+					break
+			ability = whole_bunch[ability_name_full]
+			if hero_id not in heroes:
+				hero_id = ability['hurl'].lower()
+			hero_abilities[hero_id][ability['dname']] = ability
+		self.hero_abilities = hero_abilities
+	
+	def ensure_abilities(self):
+		if hasattr(self, 'hero_abilities'):
+			return
+		self.retreive_abilities()
 
 	def get_items_list(self, language = 'english'):
 		raise NotImplementedError
