@@ -5,6 +5,7 @@ import json
 from urllib.parse import parse_qsl as parse_query, urlparse as parse_url
 
 def run_server(info, port):
+	response_cache = {}
 	class MyHandler(http.server.SimpleHTTPRequestHandler):
 		def respond(self, content, content_type='application/json', code=200):
 			self.send_response(code)
@@ -24,8 +25,10 @@ def run_server(info, port):
 			query_vars = dict(parse_query(parse_url(self.path).query))
 
 			try:
-				info_getter = getattr(info, 'get_' + request)
-				self.respond(info_getter(**query_vars))
+				if self.path not in response_cache:
+					info_getter = getattr(info, 'get_' + request)
+					response_cache[self.path] = info_getter(**query_vars)
+				self.respond(response_cache[self.path])
 			except AttributeError:
 				self.not_found()
 			except NotImplementedError:
