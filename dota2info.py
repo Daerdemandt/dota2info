@@ -35,7 +35,7 @@ class Dota2info():
 			'id': hero_id,
 			'name':hero_id.replace('_', ' ').title()
 		}
-		hero_page_url = 'http://' + self.address + '/hero/' + hero_id.title()
+		hero_page_url = 'http://' + self.address + '/hero/' + hero_id.title().replace("'S_", "s_")
 		html_content_path = ['body', 'center', 'bodyContainer', 'centerColContainer', 'centerColContent']
 		html_data = sp.naviget(html_content_path, sp.get_html(hero_page_url))
 		def parse_range(x):
@@ -52,7 +52,8 @@ class Dota2info():
 
 		extract = lambda path: sp.naviget(path, html_data)
 		title = extract(['h1', 'string'])
-		if (title != hero_data['name']):
+		hsh = lambda s: s.lower().replace(' ', '').replace('_', '').replace("'", '')
+		if (hsh(title) != hsh(hero_data['name'])):
 			return {'error':'invalid hero id'}
 		block_update = lambda mapping, block: hero_data.update({key: sp.naviget(mapping[key], block) for key in mapping})
 		block_update(
@@ -98,7 +99,10 @@ class Dota2info():
 		hero_data['stats_by_level']['Mana'] = [int(x.replace(',', '')) for x in hero_data['stats_by_level']['Mana']]
 
 		self.ensure_abilities()
-		hero_data['abilities'] = self.hero_abilities[hero_id]
+		if hero_id == 'natures_prophet':
+			hero_data['abilities'] = self.hero_abilities['furion']
+		else:
+			hero_data['abilities'] = self.hero_abilities[hero_id]
 
 		return hero_data
 	
